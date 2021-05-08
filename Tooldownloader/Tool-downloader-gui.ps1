@@ -60,6 +60,38 @@ function create_T_folder{
 }
 }
 
+# function to add Path to environment Variable Path
+function Add-MrEnvPath {
+
+  [CmdletBinding(SupportsShouldProcess)]
+  param (
+      [Parameter(Mandatory,
+                 ValueFromPipeline,
+                 ValueFromPipelineByPropertyName)]
+      [string[]]$pathToAdd
+  )
+
+  BEGIN{
+      $path = [Environment]::GetEnvironmentVariable('Path', 'Machine')
+  }
+
+  PROCESS {
+      $path = [Environment]::GetEnvironmentVariable('Path', 'Machine')
+          if ($path -like "*$pathToAdd*" ){
+              Write-Host "scho dinne, mache nüt"
+              Write-Verbose -Message "$path already in there"
+          
+          }else {
+              Write-Host "no nid dinn, duene ifüege"
+              Write-Verbose -Message "$path will be added"
+              $newpath = $path + $pathToAdd
+              [Environment]::SetEnvironmentVariable("Path", $newpath, 'Machine')
+          }
+      
+  }
+
+}
+
 
 # Prepare groupbox - checkbox items will be added to the groupbox later on
 $groupBox = New-Object System.Windows.Forms.GroupBox
@@ -175,6 +207,14 @@ foreach ($o in @($checkboxarray)){
 
   }
   write-host  "Downloads abgeschlossen" 
+  # Query all Folders in the Toolspath
+  $foldersToAddPath = (Get-ChildItem -Directory -Path $ToolsPath).FullName 
+  Write-Host "Folgende Pfade werden der Systemvariable hinzugefügt $foldersToAddPath"
+  # Call the Add-MrEnvPath function to add the tools folder paths to the environment variable path
+  foreach($f in $foldersToAddPath){
+    Add-MrEnvPath -pathToAdd ";$f" -WhatIf
+    Write-Host "add ;$f"
+  }
 }
 
 
